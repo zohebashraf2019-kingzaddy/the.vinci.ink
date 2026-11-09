@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Book a Tattoo | The Vinci Ink — Sparks / Reno, NV</title>
+<meta name="description" content="Book a tattoo with any artist at The Vinci Ink in Sparks / Reno. Choose your artist, share your idea, pick a time and lock it in with an $80 deposit.">
+<meta name="theme-color" content="#0a0908">
+<link rel="icon" href="/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@1,400;1,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css">
+<style>
+.bk{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:28px;align-items:start;padding:56px 24px 110px}
+.step{background:var(--ink);border:1px solid var(--line);border-radius:var(--r);padding:32px;margin-bottom:18px}
+.step-h{display:flex;align-items:center;gap:16px;margin-bottom:24px}
+.step-h b{font:500 16px/1 var(--serif);color:var(--gold);width:40px;height:40px;border:1px solid var(--gold-lo);border-radius:50%;display:grid;place-items:center;flex:none}
+.step-h h2{font-size:24px;margin:0}
+.step-h p{margin:4px 0 0;font-size:13px;color:var(--muted)}
+.pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.pick label{position:relative;display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--line);border-radius:var(--r);cursor:pointer;background:var(--black);transition:border-color .2s,background .2s}
+.pick label:hover{border-color:var(--gold-lo)}
+.pick input{position:absolute;opacity:0;pointer-events:none}
+.pick label:has(input:checked){border-color:var(--gold);background:#1c1812}
+.pick label:has(input:focus-visible){outline:2px solid var(--gold);outline-offset:2px}
+.pick .m{width:44px;height:44px;border-radius:50%;border:1px solid var(--gold-lo);display:grid;place-items:center;font:500 14px/1 var(--serif);color:var(--gold);flex:none}
+.pick strong{display:block;font:500 15px/1.2 var(--serif);letter-spacing:.03em}
+.pick small{display:block;font-size:12px;color:var(--muted);margin-top:3px}
+.pick .live{position:absolute;top:8px;right:8px;font:700 9px/1 var(--sans);letter-spacing:.14em;color:var(--black);background:var(--gold);padding:4px 6px;border-radius:2px}
+.cal{background:var(--black);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.cal-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.cal-h strong{font:500 16px/1 var(--serif);letter-spacing:.08em}
+.cal-h button{background:none;border:1px solid var(--line);color:var(--gold);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:16px}
+.cal-h button:disabled{opacity:.3;cursor:default}
+.dow,.days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.dow span{font:600 10px/1 var(--sans);letter-spacing:.14em;color:var(--dim);padding:8px 0}
+.days button{aspect-ratio:1;max-height:48px;background:none;border:1px solid transparent;border-radius:var(--r);color:var(--ivory);cursor:pointer;font-size:14px}
+.days button:hover:not(:disabled){border-color:var(--gold-lo)}
+.days button:disabled{color:#3d3730;cursor:default;text-decoration:line-through}
+.days button.on{background:var(--gold);color:var(--black);font-weight:700}
+.days button.today{border-color:var(--line)}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-top:16px}
+.slots button{background:var(--black);border:1px solid var(--line);border-radius:var(--r);padding:12px 6px;color:var(--ivory);cursor:pointer;font-size:13px}
+.slots button.on{border-color:var(--gold);color:var(--gold);background:#1c1812}
+.embed{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:#fff}
+.embed iframe{width:100%;height:700px;border:0;display:block}
+.ref{display:flex;gap:14px;align-items:center;margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:var(--r);background:var(--black)}
+.ref img{width:72px;height:72px;object-fit:cover;border-radius:3px}
+.ref button{margin-left:auto;background:none;border:1px solid var(--line);color:var(--muted);border-radius:var(--r);padding:8px 12px;cursor:pointer;font-size:12px}
+.check{display:flex;gap:12px;align-items:flex-start;font-size:14px;color:#d6cdbd;cursor:pointer;line-height:1.5}
+.check input{width:20px;height:20px;accent-color:var(--gold);flex:none;margin-top:1px}
+.sum{position:sticky;top:100px}
+.sum .card{padding:28px}
+.sum-row{display:flex;justify-content:space-between;gap:16px;padding:13px 0;border-bottom:1px solid var(--line);font-size:14px}
+.sum-row span{color:var(--muted)}
+.sum-row b{font-weight:600;text-align:right}
+.dep{margin-top:22px;padding:20px;border:1px solid var(--gold-lo);border-radius:var(--r);background:linear-gradient(160deg,#1c1711,var(--ink))}
+.dep .amt{font:500 40px/1 var(--serif);color:var(--gold)}
+.dep ul{margin:14px 0 0;padding-left:18px;font-size:13px;color:var(--muted);display:grid;gap:6px}
+.done{text-align:center;padding:50px 32px}
+.done .seal{width:96px;margin:0 auto 22px}
+@media(max-width:980px){.bk{grid-template-columns:1fr}.sum{position:static;order:-1}}
+@media(max-width:600px){.step{padding:22px 16px}.bk{padding:32px 12px 90px}.embed iframe{height:760px}}
+</style>
+</head>
+<body data-page="book">
+<main>
+  <section class="page-hero">
+    <div class="wrap">
+      <div class="eyebrow">One page · every artist</div>
+      <h1>Book your session</h1>
+      <p class="lede">Choose your artist, tell us about your piece and pick a time. Every appointment is secured with an <span class="gold" data-s="deposit">$80</span> deposit that goes toward your tattoo.</p>
+    </div>
+  </section>
+
+  <div class="wrap bk">
+    <form id="book-form" novalidate>
+      <input class="hp" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+      <div class="step" id="s1">
+        <div class="step-h"><b>I</b><div><h2>Choose your artist</h2><p>Not sure? Pick “Any artist” and we'll match you by style.</p></div></div>
+        <div class="pick" id="artist-pick" role="radiogroup" aria-label="Artist"></div>
+      </div>
+
+      <div class="step" id="s2">
+        <div class="step-h"><b>II</b><div><h2>Your tattoo</h2><p>The more detail, the more accurate your quote.</p></div></div>
+        <div class="form">
+          <div class="row2">
+            <div class="fld"><label for="b-place">Placement <i>*</i></label>
+              <select id="b-place" name="placement" required><option value="">Select…</option><option>Forearm</option><option>Upper arm</option><option>Shoulder</option><option>Full sleeve</option><option>Half sleeve</option><option>Hand</option><option>Chest</option><option>Pec / collarbone</option><option>Ribs</option><option>Stomach</option><option>Upper back</option><option>Full back</option><option>Shoulder blade</option><option>Spine</option><option>Lower back</option><option>Back of neck</option><option>Neck</option><option>Thigh</option><option>Back of thigh</option><option>Calf</option><option>Shin</option><option>Other</option></select></div>
+            <div class="fld"><label for="b-size">Approx. size <i>*</i></label>
+              <select id="b-size" name="size" required><option value="">Select…</option><option>Small (up to 3 in)</option><option>Medium (3–6 in)</option><option>Large (6–10 in)</option><option>Extra large (10 in +)</option><option>Half sleeve</option><option>Full sleeve</option><option>Back piece</option><option>Not sure yet</option></select></div>
+          </div>
+          <div class="row2">
+            <div class="fld"><label for="b-style">Style</label>
+              <select id="b-style" name="style"><option>Black &amp; grey realism</option><option>Portrait</option><option>Fine line</option><option>Script / lettering</option><option>Cover-up / rework</option><option>Flash design</option><option>Color</option><option>Other / not sure</option></select></div>
+            <div class="fld"><label for="b-first">Is this your first tattoo?</label>
+              <select id="b-first" name="firstTattoo"><option>No</option><option>Yes</option></select></div>
+          </div>
+          <div class="fld"><label for="b-idea">Describe your idea <i>*</i></label><textarea id="b-idea" name="idea" required placeholder="Subject, mood, any meaning behind it, elements you want included…"></textarea></div>
+          <div class="fld">
+            <label for="b-ref">Reference image</label>
+            <label class="drop" style="display:block;border:1px dashed var(--gold-lo);border-radius:var(--r);padding:16px;text-align:center;cursor:pointer;color:var(--muted);font-size:13px"><b style="color:var(--gold);display:block">Upload a reference</b>JPG or PNG — sketches, screenshots, old tattoo for cover-ups<input id="b-ref" name="reference" type="file" accept="image/*" style="display:none"></label>
+            <div id="ref-preview"></div>
+            <div id="tryon-preview"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" id="s3">
+        <div class="step-h"><b>III</b><div><h2 id="s3-title">Pick a date &amp; time</h2><p id="s3-sub">Choose your preferred day — your artist confirms the exact time by text.</p></div></div>
+        <div id="when"></div>
+      </div>
+
+      <div class="step" id="s4">
+        <div class="step-h"><b>IV</b><div><h2>Your details</h2><p>We'll text you to confirm and send your deposit link.</p></div></div>
+        <div class="form">
+          <div class="row2">
+            <div class="fld"><label for="b-name">Full name <i>*</i></label><input id="b-name" name="name" required autocomplete="name"></div>
+            <div class="fld"><label for="b-phone">Mobile phone <i>*</i></label><input id="b-phone" name="phone" type="tel" required autocomplete="tel"></div>
+          </div>
+          <div class="row2">
+            <div class="fld"><label for="b-email">Email <i>*</i></label><input id="b-email" name="email" type="email" required autocomplete="email"></div>
+            <div class="fld"><label for="b-ig">Instagram (optional)</label><input id="b-ig" name="instagram" placeholder="@yourhandle"></div>
+          </div>
+          <label class="check"><input type="checkbox" name="ageOk" required><span>I am 18 or older and will bring a valid government ID.</span></label>
+          <label class="check"><input type="checkbox" name="depositOk" required><span>I understand an <b class="gold">$80 non-refundable deposit</b> is required to confirm my appointment and goes toward my tattoo.</span></label>
+          <div class="status" role="status"></div>
+          <button class="btn" type="submit" id="submit-btn">Request my appointment</button>
+          <p class="form-note">Prefer to talk? Call <a class="link" data-s="phone" href="#"></a> · walk-ins welcome Mon–Sat 12–7 PM.</p>
+        </div>
+      </div>
+    </form>
+
+    <aside class="sum">
+      <div class="card">
+        <div class="eyebrow">Your booking</div>
+        <div style="margin-top:18px">
+          <div class="sum-row"><span>Artist</span><b id="sum-artist">—</b></div>
+          <div class="sum-row"><span>Placement</span><b id="sum-place">—</b></div>
+          <div class="sum-row"><span>Size</span><b id="sum-size">—</b></div>
+          <div class="sum-row"><span>Date</span><b id="sum-date">—</b></div>
+          <div class="sum-row"><span>Time</span><b id="sum-time">—</b></div>
+        </div>
+        <div class="dep">
+          <div style="font:600 10px/1 var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Required deposit</div>
+          <div class="amt" data-s="deposit">$80</div>
+          <ul id="policy"></ul>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<script src="/assets/js/config.js"></script>
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/booking.js"></script>
+</body>
+</html>

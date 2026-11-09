@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Free Tattoo Try-On | The Vinci Ink — Sparks / Reno</title>
+<meta name="description" content="Upload any tattoo design and see how it looks on a body model or a photo of your own skin. Free, private, right in your browser — then book the placement with The Vinci Ink.">
+<meta name="theme-color" content="#0a0908">
+<link rel="icon" href="/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@1,400;1,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css">
+<style>
+.to-wrap{display:grid;grid-template-columns:190px minmax(0,1fr) 340px;gap:18px;max-width:1400px;margin:0 auto;padding:96px 18px 40px;align-items:start}
+.to-areas,.to-panel{background:var(--ink);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.to-areas{position:sticky;top:94px}
+.to-areas h4,.to-panel h4{font:600 10px/1 var(--sans);letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin:0 0 14px}
+.area-list{display:grid;gap:4px}
+.area-list button{background:none;border:1px solid transparent;border-radius:var(--r);padding:10px 12px;text-align:left;color:var(--muted);cursor:pointer;font-size:14px;transition:all .15s}
+.area-list button:hover{color:var(--ivory);border-color:var(--line);background:var(--panel)}
+.area-list button.on{color:var(--gold);border-color:var(--gold-lo);background:#1c1812}
+.to-stage{background:var(--ink);border:1px solid var(--line);border-radius:var(--r);padding:16px;position:relative}
+.stage-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.stage-top h1{font-size:22px;letter-spacing:.08em}
+.stage-top p{margin:0;font-size:13px;color:var(--muted)}
+.canvas-box{position:relative;background:radial-gradient(ellipse at 50% 35%,#2e2a25,#191714 75%);border-radius:var(--r);display:flex;justify-content:center;overflow:hidden;min-height:420px}
+#c{display:block;max-width:100%;max-height:calc(100vh - 220px);height:auto;touch-action:none;cursor:crosshair}
+#c.over{cursor:grab}#c.dragging{cursor:grabbing}
+.drop-hint{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(10,9,8,.85);border:2px dashed var(--gold);border-radius:var(--r);font:500 18px/1 var(--serif);letter-spacing:.1em;color:var(--gold);pointer-events:none}
+.canvas-box.drag .drop-hint{display:flex}
+.stage-foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--dim)}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;background:var(--black);border:1px solid var(--line);border-radius:var(--r);padding:4px}
+.seg button{background:none;border:0;border-radius:3px;padding:10px 6px;color:var(--muted);cursor:pointer;font:600 11px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase}
+.seg button.on{background:var(--gold);color:var(--black)}
+.grp{padding:18px 0;border-bottom:1px solid var(--line)}
+.grp:first-child{padding-top:0}.grp:last-child{border:0;padding-bottom:0}
+.grp-t{display:flex;align-items:center;gap:10px;font:500 15px/1 var(--serif);letter-spacing:.06em;margin-bottom:14px}
+.grp-t b{width:22px;height:22px;border-radius:50%;border:1px solid var(--gold);display:grid;place-items:center;font:600 11px/1 var(--sans);color:var(--gold)}
+.tones{display:flex;gap:8px;margin-top:10px}
+.tones button{width:30px;height:30px;border-radius:50%;border:2px solid transparent;cursor:pointer;outline-offset:2px}
+.tones button.on{border-color:var(--gold)}
+.drop{display:block;border:1px dashed var(--gold-lo);border-radius:var(--r);padding:18px 12px;text-align:center;cursor:pointer;color:var(--muted);font-size:13px;transition:border-color .2s,background .2s}
+.drop:hover{border-color:var(--gold);background:#16130f}
+.drop b{display:block;color:var(--gold);font-weight:600;margin-bottom:4px}
+.drop input{display:none}
+.samples{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+.samples button{aspect-ratio:1;background:#efe8da;border:1px solid var(--line);border-radius:3px;cursor:pointer;padding:6px}
+.samples button img{width:100%;height:100%;object-fit:contain}
+.samples button.on{outline:2px solid var(--gold)}
+.sl{margin:12px 0}
+.sl label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px}
+.sl output{color:var(--ivory)}
+input[type=range]{width:100%;accent-color:var(--gold)}
+.tog{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;color:#d6cdbd;padding:7px 0;cursor:pointer}
+.tog input{appearance:none;width:38px;height:22px;border-radius:999px;background:#2c2620;position:relative;cursor:pointer;transition:background .2s;flex:none}
+.tog input::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--muted);transition:transform .2s,background .2s}
+.tog input:checked{background:var(--gold-lo)}
+.tog input:checked::after{transform:translateX(16px);background:var(--gold-hi)}
+.tools{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px}
+.tools button{background:var(--black);border:1px solid var(--line);border-radius:var(--r);padding:10px 0;color:var(--muted);cursor:pointer;font-size:16px;line-height:1}
+.tools button:hover{color:var(--gold);border-color:var(--gold-lo)}
+.to-panel .btn{width:100%;margin-top:8px}
+.layers{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.layers button{width:44px;height:44px;border-radius:3px;border:1px solid var(--line);background:#efe8da;padding:4px;cursor:pointer}
+.layers button.on{outline:2px solid var(--gold)}
+.layers img{width:100%;height:100%;object-fit:contain}
+.privacy{font-size:12px;color:var(--dim);line-height:1.55;margin:14px 0 0}
+.photo-only{display:none}.mode-photo .photo-only{display:block}.mode-photo .model-only{display:none}
+@media(max-width:1100px){.to-wrap{grid-template-columns:minmax(0,1fr) 320px}.to-areas{grid-column:1/-1;position:static;order:2}.area-list{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}}
+@media(max-width:780px){.to-wrap{grid-template-columns:1fr;padding-top:88px}.to-stage{padding:10px}#c{max-height:70vh}.to-areas{order:1}.to-panel{order:3}}
+</style>
+</head>
+<body data-page="tryon">
+<main class="to-wrap" id="app">
+  <aside class="to-areas model-only" aria-label="Quick placement">
+    <h4>Tattoo area</h4>
+    <div class="area-list" id="areas"></div>
+  </aside>
+  <aside class="to-areas photo-only" aria-label="Photo tips">
+    <h4>Photo tips</h4>
+    <p style="font-size:13px;color:var(--muted);margin:0;line-height:1.6">Use bright, even light. Keep the body part flat to the camera and fill the frame. Drag the design into place, then use the corner handle to size and angle it.</p>
+  </aside>
+
+  <section class="to-stage">
+    <div class="stage-top">
+      <div><h1>Tattoo <span class="gold">Try-On</span></h1><p>Click the body to place your design · drag to move · corner handle to resize &amp; rotate</p></div>
+      <div class="seg" role="tablist" aria-label="Preview on"><button class="on" data-mode="model">Body model</button><button data-mode="photo">My photo</button></div>
+    </div>
+    <div class="canvas-box" id="box">
+      <canvas id="c" width="600" height="900" aria-label="Tattoo preview canvas"></canvas>
+      <div class="drop-hint">Drop your design here</div>
+    </div>
+    <div class="stage-foot"><span>Illustrated preview — size and appearance are approximate. Your artist will finalize the design for your body.</span><span>Scroll or pinch to resize</span></div>
+  </section>
+
+  <aside class="to-panel">
+    <div class="grp model-only">
+      <div class="grp-t"><b>1</b>Choose a model</div>
+      <div class="seg" id="gender"><button class="on" data-v="male">Male</button><button data-v="female">Female</button></div>
+      <div class="seg" id="view" style="margin-top:8px"><button class="on" data-v="front">Front</button><button data-v="back">Back</button></div>
+      <div class="tones" id="tones" aria-label="Skin tone"></div>
+    </div>
+    <div class="grp photo-only">
+      <div class="grp-t"><b>1</b>Your photo</div>
+      <label class="drop"><b>Upload a photo of your skin</b>Arm, leg, back, chest — JPG, PNG or HEIC-converted<input id="photo-in" type="file" accept="image/*"></label>
+    </div>
+
+    <div class="grp">
+      <div class="grp-t"><b>2</b>Your design</div>
+      <label class="drop"><b>Upload tattoo design</b>PNG, JPG or WebP · max 10 MB<input id="design-in" type="file" accept="image/png,image/jpeg,image/webp"></label>
+      <div class="samples" id="samples" aria-label="Sample designs"></div>
+      <label class="tog">Remove white background<input type="checkbox" id="knock" checked></label>
+      <label class="tog">Black &amp; grey ink<input type="checkbox" id="bw"></label>
+    </div>
+
+    <div class="grp">
+      <div class="grp-t"><b>3</b>Place &amp; adjust</div>
+      <div class="sl"><label for="size">Size <output id="size-o"></output></label><input type="range" id="size" min="12" max="420" value="110"></div>
+      <div class="sl"><label for="rot">Rotation <output id="rot-o"></output></label><input type="range" id="rot" min="-180" max="180" value="0"></div>
+      <div class="sl"><label for="op">Ink strength <output id="op-o"></output></label><input type="range" id="op" min="15" max="100" value="88"></div>
+      <div class="tools">
+        <button id="flipx" title="Flip horizontal" aria-label="Flip horizontal">⇋</button>
+        <button id="flipy" title="Flip vertical" aria-label="Flip vertical">⇵</button>
+        <button id="dup" title="Duplicate" aria-label="Duplicate">⧉</button>
+        <button id="del" title="Remove" aria-label="Remove selected">✕</button>
+        <button id="clear" title="Clear all" aria-label="Clear all">↺</button>
+      </div>
+      <label class="tog" style="margin-top:8px">Healed look (softer lines)<input type="checkbox" id="healed"></label>
+      <div class="layers" id="layers" aria-label="Tattoos on canvas"></div>
+    </div>
+
+    <div class="grp">
+      <button class="btn" id="book">Book this placement</button>
+      <button class="btn ghost" id="dl">Download preview</button>
+      <p class="privacy">Private by design: your photos and designs stay in your browser and are never uploaded unless you choose to attach the preview to a booking.</p>
+    </div>
+  </aside>
+</main>
+
+<script src="/assets/js/config.js"></script>
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/body-model.js"></script>
+<script src="/assets/js/tryon.js"></script>
+</body>
+</html>
