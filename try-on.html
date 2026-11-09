@@ -23,7 +23,7 @@
 .stage-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .stage-top h1{font-size:22px;letter-spacing:.08em}
 .stage-top p{margin:0;font-size:13px;color:var(--muted)}
-.canvas-box{position:relative;background:radial-gradient(ellipse at 50% 35%,#2e2a25,#191714 75%);border-radius:var(--r);display:flex;justify-content:center;overflow:hidden;min-height:420px}
+.canvas-box{position:relative;background:#1c1b1d;border-radius:var(--r);display:flex;justify-content:center;overflow:hidden;min-height:420px}
 #c{display:block;max-width:100%;max-height:calc(100vh - 220px);height:auto;touch-action:none;cursor:crosshair}
 #c.over{cursor:grab}#c.dragging{cursor:grabbing}
 .drop-hint{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(10,9,8,.85);border:2px dashed var(--gold);border-radius:var(--r);font:500 18px/1 var(--serif);letter-spacing:.1em;color:var(--gold);pointer-events:none}
@@ -43,8 +43,8 @@
 .drop:hover{border-color:var(--gold);background:#16130f}
 .drop b{display:block;color:var(--gold);font-weight:600;margin-bottom:4px}
 .drop input{display:none}
-.samples{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
-.samples button{aspect-ratio:1;background:#efe8da;border:1px solid var(--line);border-radius:3px;cursor:pointer;padding:6px}
+.samples{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:10px}
+.samples button{min-width:0;aspect-ratio:1;background:#efe8da;border:1px solid var(--line);border-radius:3px;cursor:pointer;padding:6px}
 .samples button img{width:100%;height:100%;object-fit:contain}
 .samples button.on{outline:2px solid var(--gold)}
 .sl{margin:12px 0}
@@ -90,15 +90,14 @@ input[type=range]{width:100%;accent-color:var(--gold)}
       <canvas id="c" width="600" height="900" aria-label="Tattoo preview canvas"></canvas>
       <div class="drop-hint">Drop your design here</div>
     </div>
-    <div class="stage-foot"><span>Illustrated preview — size and appearance are approximate. Your artist will finalize the design for your body.</span><span>Scroll or pinch to resize</span></div>
+    <div class="stage-foot"><span>Demo models — size and appearance are approximate. Your artist will finalize the design for your body.</span><span>Scroll or pinch to resize</span></div>
   </section>
 
   <aside class="to-panel">
     <div class="grp model-only">
       <div class="grp-t"><b>1</b>Choose a model</div>
       <div class="seg" id="gender"><button class="on" data-v="male">Male</button><button data-v="female">Female</button></div>
-      <div class="seg" id="view" style="margin-top:8px"><button class="on" data-v="front">Front</button><button data-v="back">Back</button></div>
-      <div class="tones" id="tones" aria-label="Skin tone"></div>
+      <div class="seg" id="view" style="margin-top:8px"><button class="on" data-v="front">Front view</button><button data-v="back">Back view</button></div>
     </div>
     <div class="grp photo-only">
       <div class="grp-t"><b>1</b>Your photo</div>
@@ -139,7 +138,7 @@ input[type=range]{width:100%;accent-color:var(--gold)}
 
 <script src="/assets/js/config.js"></script>
 <script src="/assets/js/main.js"></script>
-<script src="/assets/js/body-model.js"></script>
+<script src="/assets/js/real-models.js"></script>
 <script src="/assets/js/tryon.js"></script>
 </body>
 </html>

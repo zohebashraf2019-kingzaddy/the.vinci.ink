@@ -144,7 +144,7 @@
           <h2>See it on skin before it's forever</h2>
           <ol class="steps">
             <li>Upload your design — or a screenshot from Pinterest or Instagram.</li>
-            <li>Place it on a body model, or on a photo of your own arm, leg or back.</li>
+            <li>Place it on a real-look model — front or back — or on a photo of your own skin.</li>
             <li>Resize, rotate and preview it in ink — then book that exact placement.</li>
           </ol>
           <a class="btn" href="/try-on">Open the try-on studio</a>
@@ -209,24 +209,23 @@
 
 <script src="/assets/js/config.js"></script>
 <script src="/assets/js/main.js"></script>
-<script src="/assets/js/body-model.js"></script>
 <script>
-/* small animated preview of the try-on tool */
+/* homepage teaser: photo model with sample ink, rendered like the try-on */
 (function(){
-  const c=document.getElementById('promo-canvas'); if(!c||!window.drawBodyModel) return;
-  const ctx=c.getContext('2d'); const img=new Image(); img.src='/assets/img/sample-tattoo.svg';
-  let t=0;
-  function frame(){
-    ctx.fillStyle='#1d1a16';ctx.fillRect(0,0,800,600);
-    ctx.save();ctx.translate(400,-50);ctx.scale(1.3,1.3);ctx.translate(-300,0);
-    const shape=drawBodyModel(ctx,{gender:'male',view:'front',skin:'#c99a78'});
-    if(img.complete){ctx.save();ctx.clip(shape);ctx.globalCompositeOperation='multiply';ctx.globalAlpha=.85;
-      const a=BODY_AREAS.male.front.find(x=>x.id==='chest-r');const s=a.size+Math.sin(t/40)*6;
-      ctx.translate(a.x,a.y);ctx.rotate(a.rot*Math.PI/180);ctx.drawImage(img,-s/2,-s/2,s,s);ctx.restore();
-      const f=BODY_AREAS.male.front.find(x=>x.id==='forearm-l');ctx.save();ctx.clip(shape);ctx.globalCompositeOperation='multiply';ctx.globalAlpha=.8;ctx.translate(f.x,f.y);ctx.rotate(f.rot*Math.PI/180);ctx.drawImage(img,-f.size/2,-f.size/2,f.size,f.size);ctx.restore();}
-    drawBodyOverlay(ctx,{gender:'male',view:'front'});ctx.restore(); t++; if(!matchMedia('(prefers-reduced-motion: reduce)').matches) requestAnimationFrame(frame);
-  }
-  img.onload=frame; frame();
+  const c=document.getElementById('promo-canvas'); if(!c) return;
+  const ctx=c.getContext('2d'), L=(u)=>new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=j;i.src=u});
+  Promise.all([L('/assets/img/model-male-front.jpg'),L('/assets/img/model-male-front-skin.png'),L('/assets/img/sample-tattoo.svg'),L('/assets/img/logo-mark.png')]).then(([body,mask,orn,mark])=>{
+    const sx=110,sy=110,sw=420,sh=315;             // crop: chest & arms
+    const lay=document.createElement('canvas');lay.width=640;lay.height=1024;const lx=lay.getContext('2d');
+    // black Vitruvian mark on the forearm, ornament on the pec
+    const mk=document.createElement('canvas');mk.width=mark.width;mk.height=mark.height;const mx=mk.getContext('2d');mx.drawImage(mark,0,0);mx.globalCompositeOperation='source-in';mx.fillStyle='#151111';mx.fillRect(0,0,mk.width,mk.height);
+    const put=(img,x,y,s,r,a)=>{lx.save();lx.translate(x,y);lx.rotate(r*Math.PI/180);lx.globalAlpha=a;const h=s*(img.height||1)/(img.width||1);lx.drawImage(img,-s/2,-h/2,s,h);lx.restore()};
+    put(orn,368,262,92,0,.9);put(mk,440,330,58,-5,.85);
+    lx.globalCompositeOperation='destination-in';lx.drawImage(mask,0,0,640,1024);
+    ctx.drawImage(body,sx,sy,sw,sh,0,0,800,600);
+    ctx.globalCompositeOperation='multiply';ctx.drawImage(lay,sx,sy,sw,sh,0,0,800,600);
+    ctx.globalCompositeOperation='source-over';ctx.globalAlpha=.15;ctx.drawImage(lay,sx,sy,sw,sh,0,0,800,600);
+  }).catch(()=>{});
 })();
 </script>
 </body>

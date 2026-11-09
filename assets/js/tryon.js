@@ -2,15 +2,33 @@
 (function () {
   const $ = id => document.getElementById(id);
   const c = $("c"), ctx = c.getContext("2d"), box = $("box"), app = $("app");
-  const TONES = ["#f1d0b5", "#e0b08c", "#c99a78", "#a06d4b", "#6e4630", "#4a2e20"];
   const st = {
-    mode: "model", gender: "male", view: "front", skin: TONES[2], photo: null,
-    lists: { model: [], photo: [] }, sel: -1, area: null, design: null,
+    mode: "model", gender: "male", view: "front", photo: null,
+    lists: {}, sel: -1, area: null, design: null,
     knock: true, bw: false, healed: false
   };
-  const items = () => st.lists[st.mode];
+  const items = () => { const k = st.mode === "model" ? st.gender + "-" + st.view : "photo"; return st.lists[k] || (st.lists[k] = []); };
   const cur = () => items()[st.sel];
-  let skinPath = null;
+  /* photo-real models: image + skin mask (tattoos only land on skin) */
+  const MW = 640, MH = 1024, models = {};
+  const model = () => models[st.gender + "-" + st.view];
+  const areasNow = () => REAL_MODELS[st.gender][st.view].areas;
+  function loadModels() {
+    const jobs = [];
+    for (const g of ["male", "female"]) for (const v of ["front", "back"]) {
+      const m = models[g + "-" + v] = { img: new Image(), mask: new Image(), alpha: null, ready: false };
+      const def = REAL_MODELS[g][v];
+      jobs.push(Promise.all([loadImage(def.img).then(i => m.img = i), loadImage(def.mask).then(i => m.mask = i)]).then(() => {
+        const t = document.createElement("canvas"); t.width = MW; t.height = MH; const tx = t.getContext("2d");
+        tx.drawImage(m.mask, 0, 0, MW, MH); const d = tx.getImageData(0, 0, MW, MH).data;
+        m.alpha = new Uint8Array(MW * MH); for (let i = 0; i < m.alpha.length; i++) m.alpha[i] = d[i * 4 + 3];
+        m.ready = true; draw();
+      }).catch(() => {}));
+    }
+    return Promise.all(jobs);
+  }
+  const onModelSkin = p => { const m = model(); if (!m || !m.alpha) return true; const x = Math.round(p.x), y = Math.round(p.y); return x >= 0 && y >= 0 && x < MW && y < MH && m.alpha[y * MW + x] > 110; };
+  const layer = document.createElement("canvas"), lctx = layer.getContext("2d");
 
   /* ---------- design preparation ---------- */
   function rasterize(img) {
@@ -71,7 +89,7 @@
   /* ---------- items ---------- */
   function defaultSpot() {
     if (st.mode === "photo") return { x: c.width / 2, y: c.height / 2, size: Math.min(c.width, c.height) * .3, rot: 0 };
-    const a = BODY_AREAS[st.gender][st.view].find(a => a.id === st.area) || BODY_AREAS[st.gender][st.view][st.view === "front" ? 0 : 1];
+    const a = areasNow().find(a => a.id === st.area) || areasNow()[st.view === "front" ? 1 : 0];
     return { x: a.x, y: a.y, size: a.size, rot: a.rot };
   }
   function addItem(cv, name, spot) {
@@ -83,13 +101,23 @@
   function useDesign(cv, name) { st.design = { cv, name }; addItem(cv, name); }
 
   /* ---------- drawing ---------- */
-  function drawItem(it) {
+  function drawItem(it, x = lctx) {
     const r = it.src.height / it.src.width, w = it.size, h = it.size * r;
-    ctx.save(); ctx.translate(it.x, it.y); ctx.rotate(it.rot * Math.PI / 180); ctx.scale(it.fx, it.fy);
-    ctx.globalAlpha = it.op; ctx.globalCompositeOperation = "multiply";
-    if (st.healed && "filter" in ctx) ctx.filter = `blur(${Math.max(.4, w / 260)}px)`;
-    ctx.drawImage(it.proc, -w / 2, -h / 2, w, h);
-    ctx.restore();
+    x.save(); x.translate(it.x, it.y); x.rotate(it.rot * Math.PI / 180); x.scale(it.fx, it.fy);
+    x.globalAlpha = it.op;
+    if (st.healed && "filter" in x) x.filter = `blur(${Math.max(.4, w / 260)}px)`;
+    x.drawImage(it.proc, -w / 2, -h / 2, w, h);
+    x.restore();
+  }
+  /* ink layer → (masked to skin) → multiplied onto the body so skin texture & shading show through */
+  function inkOnto(mask) {
+    if (layer.width !== c.width || layer.height !== c.height) { layer.width = c.width; layer.height = c.height; }
+    lctx.clearRect(0, 0, layer.width, layer.height);
+    items().forEach(it => drawItem(it));
+    if (mask) { lctx.save(); lctx.globalCompositeOperation = "destination-in"; lctx.drawImage(mask, 0, 0, layer.width, layer.height); lctx.restore(); }
+    ctx.save(); ctx.globalCompositeOperation = "multiply"; ctx.drawImage(layer, 0, 0); ctx.restore();
+    // a touch of ink density so dark lines read on darker skin
+    ctx.save(); ctx.globalAlpha = .18; ctx.globalCompositeOperation = "source-over"; ctx.drawImage(layer, 0, 0); ctx.restore();
   }
   function corner(it) {
     const r = it.src.height / it.src.width, a = it.rot * Math.PI / 180, hw = it.size / 2, hh = it.size * r / 2;
@@ -99,21 +127,19 @@
   function draw(exporting) {
     ctx.clearRect(0, 0, c.width, c.height);
     if (st.mode === "model") {
-      const g = ctx.createRadialGradient(300, 330, 40, 300, 420, 620); g.addColorStop(0, "#36312b"); g.addColorStop(1, "#1a1815");
-      ctx.fillStyle = g; ctx.fillRect(0, 0, c.width, c.height);
-      skinPath = drawBodyModel(ctx, { gender: st.gender, view: st.view, skin: st.skin });
-      ctx.save(); ctx.clip(skinPath); items().forEach(drawItem); ctx.restore();
-      drawBodyOverlay(ctx, { gender: st.gender, view: st.view });
+      const m = model();
+      if (m && m.ready) { ctx.drawImage(m.img, 0, 0, MW, MH); inkOnto(m.mask); }
+      else { ctx.fillStyle = "#2a2826"; ctx.fillRect(0, 0, c.width, c.height); ctx.fillStyle = "#a69c8b"; ctx.textAlign = "center"; ctx.font = "16px Manrope, sans-serif"; ctx.fillText("Loading model…", c.width / 2, c.height / 2); }
     } else if (st.photo) {
       ctx.drawImage(st.photo, 0, 0, c.width, c.height);
-      items().forEach(drawItem);
+      inkOnto(null);
     } else {
       ctx.fillStyle = "#1d1a16"; ctx.fillRect(0, 0, c.width, c.height);
       ctx.fillStyle = "#a69c8b"; ctx.textAlign = "center"; ctx.font = "500 26px Cinzel, Georgia, serif";
       ctx.fillText("Upload a photo of your skin", c.width / 2, c.height / 2 - 10);
       ctx.font = "16px Manrope, system-ui, sans-serif"; ctx.fillStyle = "#6f6658";
       ctx.fillText("Use the panel on the right, or drop a photo here", c.width / 2, c.height / 2 + 24);
-      items().forEach(drawItem);
+      inkOnto(null);
     }
     if (exporting) return watermark();
     const it = cur();
@@ -163,7 +189,7 @@
   }
   function renderAreas() {
     const A = $("areas"); A.innerHTML = "";
-    BODY_AREAS[st.gender][st.view].forEach(a => {
+    areasNow().forEach(a => {
       const b = document.createElement("button"); b.textContent = a.label; b.className = a.id === st.area ? "on" : "";
       b.onclick = () => {
         st.area = a.id; renderAreas();
@@ -176,16 +202,15 @@
   }
   const seg = (id, key, after) => [...$(id).children].forEach(b => b.onclick = () => {
     [...$(id).children].forEach(x => x.classList.toggle("on", x === b)); st[key] = b.dataset.v;
-    after && after(); renderAreas(); draw();
+    after && after(); st.sel = items().length - 1; renderAreas(); renderLayers();
+    if (!items().length && st.design) addItem(st.design.cv, st.design.name); else sync();
   });
   seg("gender", "gender"); seg("view", "view", () => { st.area = null; });
-  $("tones").innerHTML = TONES.map((t, i) => `<button style="background:${t}" data-t="${t}" class="${t === st.skin ? "on" : ""}" aria-label="Skin tone ${i + 1}"></button>`).join("");
-  [...$("tones").children].forEach(b => b.onclick = () => { st.skin = b.dataset.t; [...$("tones").children].forEach(x => x.classList.toggle("on", x === b)); draw(); });
 
   document.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => {
     document.querySelectorAll("[data-mode]").forEach(x => x.classList.toggle("on", x === b));
     st.mode = b.dataset.mode; app.classList.toggle("mode-photo", st.mode === "photo");
-    if (st.mode === "model") { c.width = 600; c.height = 900; }
+    if (st.mode === "model") { c.width = MW; c.height = MH; }
     else fitPhotoCanvas();
     st.sel = items().length - 1; renderLayers(); sync();
   });
@@ -202,7 +227,7 @@
   $("flipy").onclick = () => { const it = cur(); if (it) { it.fy *= -1; draw(); } };
   $("dup").onclick = () => { const it = cur(); if (!it) return; items().push(Object.assign({}, it, { x: it.x + 24, y: it.y + 24 })); st.sel = items().length - 1; sync(); renderLayers(); };
   $("del").onclick = () => { if (st.sel < 0) return; items().splice(st.sel, 1); st.sel = items().length - 1; sync(); renderLayers(); };
-  $("clear").onclick = () => { st.lists[st.mode] = []; st.sel = -1; sync(); renderLayers(); };
+  $("clear").onclick = () => { items().length = 0; st.sel = -1; sync(); renderLayers(); };
   $("knock").onchange = e => { st.knock = e.target.checked; reprocessAll(); };
   $("bw").onchange = e => { st.bw = e.target.checked; reprocessAll(); };
   $("healed").onchange = e => { st.healed = e.target.checked; draw(); };
@@ -249,7 +274,7 @@
     const i = hit(p);
     if (i >= 0) { st.sel = i; act = { type: "move", ox: p.x - items()[i].x, oy: p.y - items()[i].y }; c.classList.add("dragging"); renderLayers(); sync(); return; }
     // empty spot
-    const onSkin = st.mode !== "model" || (skinPath && ctx.isPointInPath(skinPath, p.x, p.y));
+    const onSkin = st.mode !== "model" || onModelSkin(p);
     if (items().length === 0 && st.design && onSkin && (st.mode === "model" || st.photo)) { addItem(st.design.cv, st.design.name, { x: p.x, y: p.y, size: defaultSpot().size, rot: 0 }); act = { type: "move", ox: 0, oy: 0 }; return; }
     if (it && onSkin) { it.x = p.x; it.y = p.y; act = { type: "move", ox: 0, oy: 0 }; sync(); return; }
     st.sel = -1; renderLayers(); draw();
@@ -289,7 +314,7 @@
     c.toBlob(b => { const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "vinci-ink-tattoo-preview.png"; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); draw(); }, "image/png");
   };
   $("book").onclick = () => {
-    const area = st.mode === "model" ? (BODY_AREAS[st.gender][st.view].find(a => a.id === st.area)?.label || "") : "";
+    const area = st.mode === "model" ? (areasNow().find(a => a.id === st.area)?.label || "") : "";
     try {
       // downscale preview for the booking request
       const k = Math.min(1, 900 / Math.max(c.width, c.height)); draw(true);
@@ -301,12 +326,13 @@
   };
 
   /* ---------- start ---------- */
+  c.width = MW; c.height = MH; loadModels();
   renderAreas(); sync();
   makeSamples().then(list => {
     if (!list.length) return;
     st.design = { cv: list[0].cv, name: list[0].name };
     $("samples").children[0].classList.add("on");
-    st.area = "chest-r"; renderAreas();
+    st.area = "pec"; renderAreas();
     addItem(list[0].cv, list[0].name);
   });
 })();
